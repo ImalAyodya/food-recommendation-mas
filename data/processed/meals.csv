@@ -1,0 +1,11 @@
+name,diet_type,calories,protein,carbs,fat,ingredients,cuisine
+Grilled Chicken Salad,omnivore,350,45,20,12,chicken lettuce tomato dressing,Mediterranean
+Caesar Salad,vegetarian,300,15,35,10,lettuce croutons parmesan dressing,Italian
+Veggie Stir Fry,vegan,280,12,40,8,broccoli carrots bell pepper soy sauce,Asian
+Greek Salad,vegetarian,320,18,30,15,feta olives cucumber tomato,Mediterranean
+Tofu Buddha Bowl,vegan,400,20,50,12,tofu rice quinoa vegetables,Asian
+Grilled Salmon,omnivore,450,50,0,25,salmon herbs lemon,Mediterranean
+Pasta Primavera,vegetarian,420,15,60,12,pasta vegetables olive oil,Italian
+Chicken Breast with Quinoa,omnivore,480,55,35,10,chicken quinoa broccoli,Mediterranean
+Chickpea Curry,vegan,380,15,55,10,chickpeas coconut milk spices,Asian
+Margherita Pizza,vegetarian,550,20,65,20,dough tomato mozzarella basil,Italian
