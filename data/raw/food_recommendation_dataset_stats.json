@@ -1,0 +1,28 @@
+{
+  "rows": 100000,
+  "columns": 33,
+  "unique_recipe_names": 41929,
+  "duplicate_recipe_name_plus_ingredients": 0,
+  "meal_type_counts": {
+    "lunch": 30640,
+    "dinner": 30302,
+    "breakfast": 25962,
+    "snack": 13096
+  },
+  "top_cuisines": {
+    "Fusion": 10254,
+    "Mediterranean": 10166,
+    "American": 10112,
+    "Middle Eastern": 10110,
+    "Thai": 10082,
+    "Italian": 10032,
+    "Indian": 10001,
+    "Japanese": 9844,
+    "Breakfast": 9711,
+    "Mexican": 9688
+  },
+  "median_calories": 466.1,
+  "median_protein_g": 27.3,
+  "median_carbs_g": 50.7,
+  "median_fat_g": 13.5
+}

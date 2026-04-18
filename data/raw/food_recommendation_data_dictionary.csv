@@ -1,0 +1,34 @@
+column_name,type,description
+record_id,string,Unique row identifier
+recipe_name,string,Generated meal/recipe name
+source_type,string,Dataset provenance type; generated using public food schema patterns
+source_reference,string,Human-readable provenance note for schema inspiration
+cuisine_type,string,Cuisine family
+meal_type,string,breakfast/lunch/dinner/snack
+dish_type,string,Dish presentation/type for filtering
+diet_types,string,Pipe-delimited compatible diet tags
+health_labels,string,Pipe-delimited health labels derived from nutrients
+allergen_flags,string,Pipe-delimited allergens detected from ingredient list
+ingredient_count,numeric,Number of unique ingredients in the row
+ingredients_raw,string,Semicolon-delimited ingredient|grams list
+ingredient_objects_json,string,JSON array with food and grams for each ingredient
+servings,numeric,Estimated servings
+prep_time_min,numeric,Estimated prep time in minutes
+cook_time_min,numeric,Estimated cook time in minutes
+total_time_min,numeric,Prep + cook time
+estimated_weight_g,numeric,Estimated total ingredient weight in grams
+calories_kcal,numeric,Estimated calories
+protein_g,numeric,Estimated protein in grams
+fat_g,numeric,Estimated fat in grams
+carbs_g,numeric,Estimated carbohydrate in grams
+fiber_g,numeric,Estimated fiber in grams
+sugar_g,numeric,Estimated sugars in grams
+sodium_mg,numeric,Estimated sodium in milligrams
+cholesterol_mg,numeric,Estimated cholesterol in milligrams
+saturated_fat_g,numeric,Estimated saturated fat in grams
+calcium_mg,numeric,Estimated calcium in milligrams
+iron_mg,numeric,Estimated iron in milligrams
+potassium_mg,numeric,Estimated potassium in milligrams
+vitamin_c_mg,numeric,Estimated vitamin C in milligrams
+vitamin_a_mcg,numeric,Estimated vitamin A in micrograms
+data_quality_score,numeric,0-100 heuristic completeness/usefulness score
