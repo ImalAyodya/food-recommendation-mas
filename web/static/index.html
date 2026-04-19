@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FoodMind — AI Food Recommendation System</title>
+  <meta name="description" content="Personalized AI-powered food recommendations using a multi-agent system. Enter your preferences and get tailored meal suggestions instantly." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── Animated Background ─────────────────────────────────────── -->
+  <div class="bg-canvas">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <canvas id="particleCanvas"></canvas>
+  </div>
+
+  <!-- ── Navigation ──────────────────────────────────────────────── -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <div class="nav-logo">
+        <div class="logo-icon">🍽️</div>
+        <span class="logo-text">Food<span class="logo-accent">Mind</span></span>
+      </div>
+      <div class="nav-status" id="sysStatus">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusLabel">Checking system…</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Main container ──────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- Hero section -->
+    <section class="hero" id="hero">
+      <div class="hero-badge">
+        <span class="badge-glow"></span>
+        <span>✨ Powered by Multi-Agent AI</span>
+      </div>
+      <h1 class="hero-title">
+        Discover Your<br/>
+        <span class="gradient-text">Perfect Meal</span>
+      </h1>
+      <p class="hero-sub">
+        Our intelligent multi-agent system understands your preferences, analyses nutrition, and curates personalised recommendations just for you.
+      </p>
+
+      <!-- Search box -->
+      <div class="search-wrapper" id="searchWrapper">
+        <div class="search-box glass">
+          <div class="search-icon">🔍</div>
+          <input
+            type="text"
+            id="queryInput"
+            class="search-input"
+            placeholder="e.g. &quot;vegan food under 500 calories without nuts&quot;"
+            autocomplete="off"
+          />
+          <button class="search-btn" id="searchBtn">
+            <span class="btn-text">Find Meals</span>
+            <span class="btn-icon">→</span>
+          </button>
+        </div>
+
+        <!-- Quick chips -->
+        <div class="chips">
+          <span class="chip" data-q="vegan food under 400 calories">🌱 Vegan &lt;400 cal</span>
+          <span class="chip" data-q="keto high protein meal under 600 calories">🥩 Keto High-Protein</span>
+          <span class="chip" data-q="vegetarian Italian food under 700 calories">🍝 Veggie Italian</span>
+          <span class="chip" data-q="low calorie Mexican food without dairy">🌮 Mexican No-Dairy</span>
+          <span class="chip" data-q="healthy breakfast under 350 calories">🌅 Healthy Breakfast</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Pipeline Visualiser ──────────────────────────────────── -->
+    <section class="pipeline-section hidden" id="pipelineSection">
+      <h2 class="section-title">Agent Pipeline</h2>
+      <p class="section-sub">Watch your request flow through 4 intelligent agents in real time</p>
+
+      <div class="pipeline-track" id="pipelineTrack">
+
+        <div class="pipeline-connector" id="connector1"></div>
+        <div class="pipeline-connector" id="connector2"></div>
+        <div class="pipeline-connector" id="connector3"></div>
+
+        <div class="p-card glass" id="pcard-0">
+          <div class="p-icon">🧠</div>
+          <div class="p-label">Preference<br/>Analyzer</div>
+          <div class="p-state idle">Idle</div>
+          <div class="p-ring"></div>
+        </div>
+        <div class="p-card glass" id="pcard-1">
+          <div class="p-icon">🍽️</div>
+          <div class="p-label">Menu<br/>Fetcher</div>
+          <div class="p-state idle">Idle</div>
+          <div class="p-ring"></div>
+        </div>
+        <div class="p-card glass" id="pcard-2">
+          <div class="p-icon">📊</div>
+          <div class="p-label">Nutrition<br/>Analyzer</div>
+          <div class="p-state idle">Idle</div>
+          <div class="p-ring"></div>
+        </div>
+        <div class="p-card glass" id="pcard-3">
+          <div class="p-icon">⭐</div>
+          <div class="p-label">Recommendation<br/>Agent</div>
+          <div class="p-state idle">Idle</div>
+          <div class="p-ring"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Preferences Summary ──────────────────────────────────── -->
+    <section class="prefs-section hidden" id="prefsSection">
+      <h2 class="section-title">Extracted Preferences</h2>
+      <div class="prefs-grid" id="prefsGrid"></div>
+    </section>
+
+    <!-- ── Results ─────────────────────────────────────────────── -->
+    <section class="results-section hidden" id="resultsSection">
+      <div class="results-header">
+        <h2 class="section-title">Top Recommendations</h2>
+        <div class="results-meta" id="resultsMeta"></div>
+      </div>
+      <div class="results-grid" id="resultsGrid"></div>
+    </section>
+
+    <!-- ── Agent Logs ───────────────────────────────────────────── -->
+    <section class="logs-section hidden" id="logsSection">
+      <button class="logs-toggle" id="logsToggle">
+        <span>📋 View Agent Logs</span>
+        <span class="toggle-arrow" id="toggleArrow">▼</span>
+      </button>
+      <div class="logs-body hidden" id="logsBody">
+        <pre class="logs-pre" id="logsPre"></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Meal Detail Modal ─────────────────────────────────────── -->
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal glass" id="modal">
+      <button class="modal-close" id="modalClose">✕</button>
+      <div class="modal-content" id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- ── Toast ────────────────────────────────────────────────── -->
+  <div class="toast hidden" id="toast">
+    <span id="toastMsg"></span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
