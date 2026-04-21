@@ -125,7 +125,7 @@ def build_markdown_report(
     return "\n".join(lines)
 
 
-def save_markdown_report(report_md: str, output_dir: str = REPORTS_DIR) -> str:
+def save_markdown_report(report_md: str, output_dir: Optional[str] = None) -> str:
     """
     Write a Markdown report string to a timestamped file on disk.
 
@@ -133,7 +133,7 @@ def save_markdown_report(report_md: str, output_dir: str = REPORTS_DIR) -> str:
 
     Args:
         report_md:  The complete Markdown string to write.
-        output_dir: Directory to save the report in. Defaults to REPORTS_DIR.
+        output_dir: Directory to save the report in. If None, uses REPORTS_DIR.
 
     Returns:
         The absolute path of the saved file.
@@ -149,6 +149,9 @@ def save_markdown_report(report_md: str, output_dir: str = REPORTS_DIR) -> str:
     """
     if not isinstance(report_md, str):
         raise TypeError(f"report_md must be a str, got {type(report_md).__name__}")
+
+    if output_dir is None:
+        output_dir = REPORTS_DIR
 
     os.makedirs(output_dir, exist_ok=True)
     timestamp: str = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -167,7 +170,7 @@ def save_markdown_report(report_md: str, output_dir: str = REPORTS_DIR) -> str:
 def save_json_results(
     meals: List[Dict[str, Any]],
     preferences: Dict[str, Any],
-    output_dir: str = RESULTS_DIR,
+    output_dir: Optional[str] = None,
 ) -> str:
     """
     Persist the final recommendations as a structured JSON file.
@@ -178,7 +181,7 @@ def save_json_results(
     Args:
         meals:      Enriched list of recommendation dicts.
         preferences: User preference dict from Agent 1.
-        output_dir: Directory to save the JSON in. Defaults to RESULTS_DIR.
+        output_dir: Directory to save the JSON in. If None, uses RESULTS_DIR.
 
     Returns:
         The absolute path of the saved JSON file.
@@ -196,6 +199,9 @@ def save_json_results(
         raise TypeError(f"meals must be a list, got {type(meals).__name__}")
     if not isinstance(preferences, dict):
         raise TypeError(f"preferences must be a dict, got {type(preferences).__name__}")
+
+    if output_dir is None:
+        output_dir = RESULTS_DIR
 
     os.makedirs(output_dir, exist_ok=True)
     timestamp: str = datetime.now().strftime("%Y%m%d_%H%M%S")

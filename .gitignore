@@ -5,6 +5,10 @@ __pycache__/
 *.pyc
 logs/
 
+# Generated recommendation outputs
+outputs/reports/*.md
+outputs/results/*.json
+
 # C extensions
 *.so
 
