@@ -22,7 +22,10 @@ def main():
 
     print("\nTop Recommendations:")
     for meal in state["final_recommendations"]:
-        print(meal)
+        print(f"  [{meal.get('rank', '?')}] {meal.get('name', 'Unknown')} "
+              f"| Score: {meal.get('final_score', 0):.2f} "
+              f"| {meal.get('calories', '?')} kcal "
+              f"| {meal.get('category', '?').capitalize()}")
 
 if __name__ == "__main__":
     main()
