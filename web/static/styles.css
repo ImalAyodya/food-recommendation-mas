@@ -423,6 +423,104 @@ main.main {
 .pref-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
 .pref-value { font-size: 1rem; font-weight: 700; }
 
+/* ── Menu Fetcher Summary ────────────────────────────────────── */
+.menu-section { margin: 48px 0; }
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.menu-card {
+  background: var(--grad-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  text-align: center;
+  animation: fadeUp 0.5s ease both;
+  position: relative;
+  overflow: hidden;
+}
+.menu-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #6bcb77, transparent);
+}
+.menu-icon { font-size: 2rem; margin-bottom: 8px; }
+.menu-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.menu-value {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.menu-value.ok { color: #6bcb77; }
+.menu-description {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.menu-filters-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 8px;
+}
+.menu-filter-tag {
+  display: inline-block;
+  background: rgba(107, 203, 119, 0.15);
+  border: 1px solid rgba(107, 203, 119, 0.3);
+  color: #6bcb77;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.menu-impact-stats {
+  text-align: left;
+  margin-top: 8px;
+}
+.impact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  margin: 6px 0;
+  padding: 4px 8px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 6px;
+}
+.impact-label {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+.impact-value {
+  font-weight: 700;
+  color: #4d96ff;
+}
+.impact-value.negative {
+  color: #ff6b6b;
+}
+.impact-efficiency {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.8rem;
+  color: #6bcb77;
+  font-weight: 600;
+  text-align: center;
+}
+
 /* ── Nutrition Summary ───────────────────────────────────────── */
 .nutrition-section { margin: 48px 0; }
 .nutrition-grid {
