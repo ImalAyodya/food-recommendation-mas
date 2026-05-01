@@ -68,6 +68,7 @@ def fetch_menu(state: MenuFetcherState) -> MenuFetcherState:
         print(f"Agent 2: Normalized preferences -> {normalized_preferences}")
         # Load dataset and filter against the normalized constraints.
         df = load_data(DATA_PATH)
+        total_meals_count = len(df)
         candidate_meals = filter_meals(df, normalized_preferences)
         print(f"Agent 2: Candidate meals found -> {len(candidate_meals)}")
 
@@ -82,6 +83,7 @@ def fetch_menu(state: MenuFetcherState) -> MenuFetcherState:
             output_data={
                 "normalized_preferences": normalized_preferences,
                 "candidate_count": len(candidate_meals),
+                "total_meals_count": total_meals_count,
                 "status": "success",
             },
         )
