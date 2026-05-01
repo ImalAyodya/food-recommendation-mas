@@ -13,10 +13,12 @@ const statusLabel    = document.getElementById('statusLabel');
 const pipelineSection = document.getElementById('pipelineSection');
 const prefsSection    = document.getElementById('prefsSection');
 const nutritionSection = document.getElementById('nutritionSection');
+const menuSection = document.getElementById('menuSection');
 const resultsSection  = document.getElementById('resultsSection');
 const logsSection     = document.getElementById('logsSection');
 
 const prefsGrid  = document.getElementById('prefsGrid');
+const menuGrid   = document.getElementById('menuGrid');
 const nutritionGrid = document.getElementById('nutritionGrid');
 const resultsGrid = document.getElementById('resultsGrid');
 const resultsMeta = document.getElementById('resultsMeta');
@@ -262,6 +264,102 @@ function renderNutritionSummary(logs) {
   show(nutritionSection);
 }
 
+// ── Menu Fetcher summary ───────────────────────────────────────────
+function extractMenuSummary(logs) {
+  if (!Array.isArray(logs)) return null;
+  const log = logs.find(entry => entry.agent === 'MenuFetcherAgent');
+  if (!log || !log.output) return null;
+
+  const out = log.output || {};
+  const candidateCount = toCount(out.candidate_count);
+  const totalMeals = toCount(out.total_meals_count);
+  const normalizedPrefs = out.normalized_preferences || {};
+
+  if (candidateCount === null) return null;
+
+  return {
+    candidate_count: candidateCount ?? 0,
+    total_meals_count: totalMeals ?? 0,
+    normalized_preferences: normalizedPrefs,
+  };
+}
+
+function renderMenuSummary(logs) {
+  menuGrid.innerHTML = '';
+  const summary = extractMenuSummary(logs);
+  if (!summary) {
+    hide(menuSection);
+    return;
+  }
+
+  const prefs = summary.normalized_preferences || {};
+  const candidateCount = Number(summary.candidate_count ?? 0).toLocaleString();
+  const totalCount = Number(summary.total_meals_count ?? 0).toLocaleString();
+  const efficiency = summary.total_meals_count > 0 
+    ? Math.round((summary.candidate_count / summary.total_meals_count) * 100) 
+    : 0;
+
+  // Card 1: Candidate meals count
+  const card1 = document.createElement('div');
+  card1.className = 'menu-card';
+  card1.style.animationDelay = '0s';
+  card1.innerHTML = `
+    <div class="menu-icon">🍽️</div>
+    <div class="menu-label">Candidate Meals</div>
+    <div class="menu-value ok">${candidateCount}</div>
+    <div class="menu-description">After applying your filters</div>
+  `;
+  menuGrid.appendChild(card1);
+
+  // Card 2: Applied filters breakdown
+  const filters = [];
+  if (prefs.diet) filters.push(`🥗 ${prefs.diet}`);
+  if (prefs.calorie_limit) filters.push(`🔥 ≤${prefs.calorie_limit} kcal`);
+  if (prefs.cuisine) filters.push(`🌍 ${prefs.cuisine}`);
+  if (prefs.exclude && Array.isArray(prefs.exclude) && prefs.exclude.length > 0) {
+    filters.push(`🚫 No ${prefs.exclude.join(', ')}`);
+  }
+
+  if (filters.length > 0) {
+    const card2 = document.createElement('div');
+    card2.className = 'menu-card';
+    card2.style.animationDelay = '0.08s';
+    card2.innerHTML = `
+      <div class="menu-icon">🔍</div>
+      <div class="menu-label">Applied Filters</div>
+      <div class="menu-filters-list">${filters.map(f => `<span class="menu-filter-tag">${f}</span>`).join('')}</div>
+    `;
+    menuGrid.appendChild(card2);
+  }
+
+  // Card 3: Filter impact
+  if (summary.total_meals_count > 0) {
+    const card3 = document.createElement('div');
+    card3.className = 'menu-card';
+    card3.style.animationDelay = '0.16s';
+    const filtered = summary.total_meals_count - summary.candidate_count;
+    const filterRate = Math.round((filtered / summary.total_meals_count) * 100);
+    card3.innerHTML = `
+      <div class="menu-icon">📊</div>
+      <div class="menu-label">Filter Impact</div>
+      <div class="menu-impact-stats">
+        <div class="impact-row">
+          <span class="impact-label">Dataset:</span>
+          <span class="impact-value">${totalCount}</span>
+        </div>
+        <div class="impact-row">
+          <span class="impact-label">Filtered out:</span>
+          <span class="impact-value negative">${filtered.toLocaleString()}</span>
+        </div>
+        <div class="impact-efficiency">Kept ${efficiency}% of meals</div>
+      </div>
+    `;
+    menuGrid.appendChild(card3);
+  }
+
+  show(menuSection);
+}
+
 // ── Food emoji picker ─────────────────────────────────────────────
 const FOOD_EMOJIS = ['🍲','🥘','🍛','🥗','🍜','🍱','🌮','🍝','🥙','🍣',
                      '🥩','🫕','🥦','🍚','🥐','🫔','🍤','🌯','🥞','🍗'];
@@ -454,6 +552,7 @@ searchBtn.addEventListener('click', async () => {
 
   // Reset UI
   hide(prefsSection);
+  hide(menuSection);
   hide(nutritionSection);
   hide(resultsSection);
   hide(logsSection);
@@ -486,6 +585,7 @@ searchBtn.addEventListener('click', async () => {
 
     // Show results
     renderPreferences(data.preferences);
+    renderMenuSummary(data.logs);
     renderNutritionSummary(data.logs);
     renderResults(data.recommendations, data.query);
     renderLogs(data.logs);
