@@ -56,9 +56,23 @@ def filter_meals(df: pd.DataFrame, preferences: Mapping[str, Any]) -> List[Dict[
             raise ValueError("preferences['diet'] must be a string or None")
         diet = diet.strip()
         if diet:
+            # ── Soft diet filter ───────────────────────────────────────────────
+            # Try an exact pipe-delimited token match first (strictest)
             token = re.escape(diet)
-            pattern = rf"(?:^|\|)\s*{token}\s*(?:\||$)"
-            working = working[working["diet_type"].str.contains(pattern, case=False, na=False)]
+            strict_pattern = rf"(?:^|\|)\s*{token}\s*(?:\||$)"
+            strict_match = working[working["diet_type"].str.contains(
+                strict_pattern, case=False, na=False)]
+
+            if len(strict_match) >= 1:
+                working = strict_match
+            else:
+                # Fall back to a substring match (looser)
+                loose_match = working[working["diet_type"].str.contains(
+                    re.escape(diet), case=False, na=False)]
+                if len(loose_match) >= 1:
+                    working = loose_match
+                # else: diet filter skipped entirely — let nutrition agent handle
+                # diet compliance via ingredient analysis instead
 
     cuisine = preferences.get("cuisine")
     if cuisine is not None:
@@ -66,7 +80,12 @@ def filter_meals(df: pd.DataFrame, preferences: Mapping[str, Any]) -> List[Dict[
             raise ValueError("preferences['cuisine'] must be a string or None")
         cuisine = cuisine.strip()
         if cuisine:
-            working = working[working["cuisine"].str.contains(re.escape(cuisine), case=False, na=False)]
+            # ── Soft cuisine filter ────────────────────────────────────────────
+            cuisine_match = working[working["cuisine"].str.contains(
+                re.escape(cuisine), case=False, na=False)]
+            if len(cuisine_match) >= 1:
+                working = cuisine_match
+            # else: skip cuisine filter rather than returning 0 results
 
     calorie_limit = preferences.get("calorie_limit")
     if calorie_limit is not None:

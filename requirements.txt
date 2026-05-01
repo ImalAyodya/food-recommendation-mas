@@ -4,3 +4,8 @@ pytest
 pytest-mock
 langchain
 langchain-ollama
+langchain-core
+langgraph
+flask
+flask-cors
+requests

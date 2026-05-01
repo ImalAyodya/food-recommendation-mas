@@ -1,44 +1,33 @@
-# from config import TOP_N
-
-# def recommend_meals(state):
-#     sorted_meals = sorted(state["scored_meals"], key=lambda x: x["score"], reverse=True)
-#     state["final_recommendations"] = sorted_meals[:TOP_N]
-#     return state
-
 """
+agents/recommendation_agent.py
+================================
 Agent 4: Recommendation & Report Agent
-=======================================
+-----------------------------------------
+Role in MAS Pipeline
+    Final agent. Selects the best scored meals, applies cuisine diversity,
+    generates a Markdown report + JSON results file, and persists the full
+    pipeline trace via the logger.
 
-Role in the MAS Pipeline
---------------------------
-This is the final agent in the Food Recommendation Multi-Agent System.
-It receives the scored meals produced by Agent 3 (NutritionAnalyzerAgent),
-selects the best ones, generates a structured Markdown report, and
-persists both the report and structured JSON results to disk.
+Tools used
+    • tools/scoring_tool.py  — rank_meals, diversify_meals, enrich_with_rank
+    • tools/report_tool.py   — build_markdown_report, save_markdown_report,
+                               save_json_results, print_console_summary
+    • tools/logger.py        — log_agent_step, log_tool_call, persist_trace
 
-Persona & Design Philosophy
------------------------------
-This agent acts as a "nutritional journalist" — it takes raw scoring data
-and turns it into something a real human can read, understand, and act on.
-It reasons about diversity (don't recommend 5 Italian dishes), presentation
-(rank badges, score bars), and explainability (why was each meal chosen).
-
-Assignment Compliance
-----------------------
-✔  One distinct agent with a clear, non-overlapping role
-✔  Uses two custom Python tools: report_tool.py and scoring_tool.py
-✔  Reads from and writes to global state (FoodState TypedDict)
-✔  Logs every step via the shared logger tool
-✔  Works entirely locally — no API keys required
+Assignment compliance
+    ✔  Distinct agent with a non-overlapping role
+    ✔  Uses four custom tool functions across two tool files
+    ✔  Writes report_path and json_path back to FoodState
+    ✔  Persists trace at end of pipeline for full observability
+    ✔  Works entirely locally — no API keys required
 """
 
 from __future__ import annotations
 
 import os
-from datetime import datetime
 from typing import Any, Dict, List
 
-from tools.logger import log_agent_step
+from tools.logger import log_agent_step, log_tool_call, persist_trace
 from tools.report_tool import (
     build_markdown_report,
     save_markdown_report,
@@ -47,94 +36,110 @@ from tools.report_tool import (
 )
 from tools.scoring_tool import rank_meals, diversify_meals, enrich_with_rank
 
-
-# ─────────────────────────────────────────────────────────────
-# Configuration
-# ─────────────────────────────────────────────────────────────
 try:
     from config import TOP_N
 except ImportError:
     TOP_N = 5
 
 
-# ═════════════════════════════════════════════════════════════
-# Public Entry Point — called by main.py / LangGraph node
-# ═════════════════════════════════════════════════════════════
-
 def recommend_meals(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     Agent 4 main function: Recommendation & Report Agent.
 
     Reads:
-        state["scored_meals"]   — list of meal dicts scored by Agent 3
-        state["preferences"]    — user preferences dict from Agent 1
+        state["scored_meals"]   — accepted meals from Agent 3
+        state["preferences"]    — user preferences from Agent 1
 
     Writes:
-        state["final_recommendations"]  — top-N enriched meal dicts
-        state["logs"]                   — appends one log entry
-
-    Side effects:
-        - Saves a Markdown report to outputs/reports/
-        - Saves a JSON results file to outputs/results/
+        state["final_recommendations"] — top-N enriched meal dicts
+        state["report_path"]           — path to saved Markdown report
+        state["json_path"]             — path to saved JSON results
+        state["logs"]                  — one log entry appended
+        state["tool_calls"]            — tool invocation records appended
 
     Args:
-        state: The shared FoodState TypedDict passed through the pipeline.
+        state: Shared FoodState dict.
 
     Returns:
-        Updated state with final_recommendations populated.
+        Updated state dict.
     """
     print("\n[Agent 4] Starting Recommendation & Report Agent...")
 
     scored_meals: List[Dict[str, Any]] = state.get("scored_meals", [])
-    preferences: Dict[str, Any] = state.get("preferences", {})
+    preferences:  Dict[str, Any]       = state.get("preferences", {})
+    run_id: str = state.get("run_id", "unknown")
 
-    # ── Step 1: Rank all scored meals by final_score DESC ──────
-    ranked: List[Dict[str, Any]] = rank_meals(scored_meals)
-    print(f"[Agent 4] Ranked {len(ranked)} scored meals.")
+    # ── Step 1: Rank ──────────────────────────────────────────────────────────
+    ranked = rank_meals(scored_meals)
+    log_tool_call(state, "rank_meals",
+                  {"scored_meal_count": len(scored_meals)},
+                  {"ranked_count": len(ranked)})
+    print(f"[Agent 4] Ranked {len(ranked)} meals.")
 
-    # ── Step 2: Apply cuisine diversity then slice to TOP_N ────
-    top_meals: List[Dict[str, Any]] = diversify_meals(ranked, top_n=TOP_N)
-    print(f"[Agent 4] Selected top {len(top_meals)} diverse meals.")
+    # ── Step 2: Diversify ─────────────────────────────────────────────────────
+    top_meals = diversify_meals(ranked, top_n=TOP_N)
+    log_tool_call(state, "diversify_meals",
+                  {"ranked_count": len(ranked), "top_n": TOP_N},
+                  {"selected_count": len(top_meals)})
+    print(f"[Agent 4] Selected {len(top_meals)} diverse meals.")
 
-    # ── Step 3: Enrich meals with rank numbers and badges ──────
-    enriched: List[Dict[str, Any]] = enrich_with_rank(top_meals)
+    # ── Step 3: Enrich with rank ──────────────────────────────────────────────
+    enriched = enrich_with_rank(top_meals)
+    log_tool_call(state, "enrich_with_rank",
+                  {"meal_count": len(top_meals)},
+                  {"enriched_count": len(enriched)})
 
-    # ── Step 4: Write to shared state ─────────────────────────
+    # ── Step 4: Write to state ────────────────────────────────────────────────
     state["final_recommendations"] = enriched
 
-    # ── Step 5: Build Markdown report ─────────────────────────
-    report_md: str = build_markdown_report(enriched, preferences)
+    # ── Step 5: Build Markdown report ────────────────────────────────────────
+    report_md = build_markdown_report(enriched, preferences)
+    log_tool_call(state, "build_markdown_report",
+                  {"meal_count": len(enriched)}, {"report_length_chars": len(report_md)})
 
-    # ── Step 6: Save report and JSON to disk ──────────────────
-    report_path: str = save_markdown_report(report_md)
-    json_path: str = save_json_results(enriched, preferences)
+    # ── Step 6: Save report and JSON ─────────────────────────────────────────
+    report_path = save_markdown_report(report_md)
+    json_path   = save_json_results(enriched, preferences)
+    log_tool_call(state, "save_reports",
+                  {"run_id": run_id},
+                  {"report_path": report_path, "json_path": json_path})
 
-    # ── Step 7: Log the agent step ────────────────────────────
+    # ── Step 7: Write paths to state ──────────────────────────────────────────
+    state["report_path"] = report_path
+    state["json_path"]   = json_path
+
+    # ── Step 8: Agent step log ────────────────────────────────────────────────
     log_agent_step(
         state=state,
         agent_name="RecommendationReportAgent",
         input_data={
             "total_scored_meals": len(scored_meals),
-            "top_n_requested": TOP_N,
+            "top_n_requested":    TOP_N,
             "preferences_summary": {
-                "diet": preferences.get("diet"),
+                "diet":         preferences.get("diet"),
                 "calorie_limit": preferences.get("calorie_limit"),
-                "exclude": preferences.get("exclude", []),
-                "cuisine": preferences.get("cuisine"),
+                "exclude":      preferences.get("exclude", []),
+                "cuisine":      preferences.get("cuisine"),
             },
         },
         output_data={
             "recommendations_count": len(enriched),
-            "top_meal_name": enriched[0].get("name", "Unknown") if enriched else None,
+            "top_meal_name":  enriched[0].get("name")  if enriched else None,
             "top_meal_score": enriched[0].get("final_score") if enriched else None,
-            "report_path": report_path,
-            "json_path": json_path,
-            "status": "success" if enriched else "no_results",
+            "report_path":    report_path,
+            "json_path":      json_path,
+            "status":         "success" if enriched else "no_results",
         },
     )
 
-    # ── Step 8: Print console summary ─────────────────────────
-    print_console_summary(enriched, preferences)
+    # ── Step 9: Persist full trace ────────────────────────────────────────────
+    try:
+        trace_path = persist_trace(state, run_id)
+        print(f"[Agent 4] Trace saved -> {trace_path}")
+    except Exception as exc:
+        print(f"[Agent 4] Warning: could not persist trace: {exc}")
 
+    # ── Step 10: Print console summary ────────────────────────────────────────
+    print_console_summary(enriched, preferences)
     print(f"[Agent 4] Done. {len(enriched)} recommendations generated.")
     return state
