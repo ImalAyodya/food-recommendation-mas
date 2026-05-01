@@ -12,10 +12,12 @@ const statusLabel    = document.getElementById('statusLabel');
 
 const pipelineSection = document.getElementById('pipelineSection');
 const prefsSection    = document.getElementById('prefsSection');
+const nutritionSection = document.getElementById('nutritionSection');
 const resultsSection  = document.getElementById('resultsSection');
 const logsSection     = document.getElementById('logsSection');
 
 const prefsGrid  = document.getElementById('prefsGrid');
+const nutritionGrid = document.getElementById('nutritionGrid');
 const resultsGrid = document.getElementById('resultsGrid');
 const resultsMeta = document.getElementById('resultsMeta');
 
@@ -210,6 +212,56 @@ function renderPreferences(prefs) {
   show(prefsSection);
 }
 
+// ── Nutrition summary ───────────────────────────────────────────
+const NUTRITION_META = [
+  { key: 'evaluated', icon: '🧮', label: 'Meals analyzed', tone: 'warn' },
+  { key: 'accepted',  icon: '✅', label: 'Accepted',       tone: 'ok' },
+  { key: 'rejected',  icon: '❌', label: 'Rejected',       tone: 'bad' },
+];
+
+function extractNutritionSummary(logs) {
+  if (!Array.isArray(logs)) return null;
+  const log = logs.find(entry => entry.agent === 'NutritionAnalyzerAgent');
+  if (!log || !log.output) return null;
+
+  const out = log.output || {};
+  const evaluated = toCount(out.evaluated_count ?? out.evaluated);
+  const accepted  = toCount(out.accepted_count ?? out.accepted);
+  const rejected  = toCount(out.rejected_count ?? out.rejected);
+
+  if (evaluated === null && accepted === null && rejected === null) return null;
+
+  return {
+    evaluated: evaluated ?? 0,
+    accepted: accepted ?? 0,
+    rejected: rejected ?? 0,
+  };
+}
+
+function renderNutritionSummary(logs) {
+  nutritionGrid.innerHTML = '';
+  const summary = extractNutritionSummary(logs);
+  if (!summary) {
+    hide(nutritionSection);
+    return;
+  }
+
+  NUTRITION_META.forEach((meta, idx) => {
+    const card = document.createElement('div');
+    card.className = 'nutrition-card';
+    card.style.animationDelay = `${idx * 0.08}s`;
+    const value = Number(summary[meta.key] ?? 0).toLocaleString();
+    card.innerHTML = `
+      <div class="nutrition-icon">${meta.icon}</div>
+      <div class="nutrition-label">${meta.label}</div>
+      <div class="nutrition-value ${meta.tone}">${value}</div>
+    `;
+    nutritionGrid.appendChild(card);
+  });
+
+  show(nutritionSection);
+}
+
 // ── Food emoji picker ─────────────────────────────────────────────
 const FOOD_EMOJIS = ['🍲','🥘','🍛','🥗','🍜','🍱','🌮','🍝','🥙','🍣',
                      '🥩','🫕','🥦','🍚','🥐','🫔','🍤','🌯','🥞','🍗'];
@@ -402,6 +454,7 @@ searchBtn.addEventListener('click', async () => {
 
   // Reset UI
   hide(prefsSection);
+  hide(nutritionSection);
   hide(resultsSection);
   hide(logsSection);
   resetPipeline();
@@ -433,6 +486,7 @@ searchBtn.addEventListener('click', async () => {
 
     // Show results
     renderPreferences(data.preferences);
+    renderNutritionSummary(data.logs);
     renderResults(data.recommendations, data.query);
     renderLogs(data.logs);
 
@@ -471,6 +525,12 @@ function hide(el) { el.classList.add('hidden'); }
 function escHtml(s) {
   if (!s) return '';
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toCount(val) {
+  if (typeof val === 'number' && Number.isFinite(val)) return val;
+  if (typeof val === 'string' && val.trim() !== '' && !Number.isNaN(Number(val))) return Number(val);
+  return null;
 }
 
 let toastTimer;
