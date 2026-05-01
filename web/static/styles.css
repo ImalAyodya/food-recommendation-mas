@@ -423,6 +423,37 @@ main.main {
 .pref-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
 .pref-value { font-size: 1rem; font-weight: 700; }
 
+/* ── Nutrition Summary ───────────────────────────────────────── */
+.nutrition-section { margin: 48px 0; }
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.nutrition-card {
+  background: var(--grad-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  text-align: center;
+  animation: fadeUp 0.5s ease both;
+}
+.nutrition-icon { font-size: 1.8rem; margin-bottom: 6px; }
+.nutrition-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.nutrition-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+.nutrition-value.ok { color: #6bcb77; }
+.nutrition-value.warn { color: #ffd93d; }
+.nutrition-value.bad { color: #ff6b6b; }
+
 /* ── Results ──────────────────────────────────────────────────── */
 .results-section { margin: 48px 0; }
 .results-header {
