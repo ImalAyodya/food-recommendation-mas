@@ -544,6 +544,19 @@ main.main {
   width: 0;
 }
 
+/* ── Why-selected snippet on meal card ─────────────────────────── */
+.meal-why-snippet {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: rgba(199,125,255,0.85);
+  background: rgba(108,75,255,0.08);
+  border: 1px solid rgba(108,75,255,0.2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  animation: fadeUp 0.5s ease both;
+}
+
 /* ── Modal ─────────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;

@@ -88,20 +88,21 @@ def recommend():
     recommendations = []
     for meal in result.get("final_recommendations", []):
         recommendations.append({
-            "name":       meal.get("name", "Unknown"),
-            "calories":   _safe_float(meal.get("calories", 0)),
-            "protein":    _safe_float(meal.get("protein", 0)),
-            "fat":        _safe_float(meal.get("fat", 0)),
-            "carbs":      _safe_float(meal.get("carbs", 0)),
-            "diet_type":  meal.get("diet_type", ""),
-            "cuisine":    meal.get("cuisine", ""),
-            "allergens":  meal.get("allergens", "none"),
-            "ingredients":meal.get("ingredients", ""),
-            "score":      _safe_float(meal.get("final_score", 0)),
-            "rank":       meal.get("rank", 0),
-            "badge":      meal.get("badge", ""),
-            "category":   meal.get("category", ""),
-            "reason":     meal.get("reason", ""),
+            "name":                  meal.get("name", "Unknown"),
+            "calories":              _safe_float(meal.get("calories", 0)),
+            "protein":               _safe_float(meal.get("protein", 0)),
+            "fat":                   _safe_float(meal.get("fat", 0)),
+            "carbs":                 _safe_float(meal.get("carbs", 0)),
+            "diet_type":             meal.get("diet_type", ""),
+            "cuisine":               meal.get("cuisine", ""),
+            "allergens":             meal.get("allergens", "none"),
+            "ingredients":           meal.get("ingredients", ""),
+            "score":                 _safe_float(meal.get("final_score", 0)),
+            "rank":                  meal.get("rank", 0),
+            "badge":                 meal.get("badge", ""),
+            "category":              meal.get("category", ""),
+            "reason":                meal.get("reason", ""),
+            "selection_description": meal.get("selection_description", ""),
         })
 
     return jsonify({

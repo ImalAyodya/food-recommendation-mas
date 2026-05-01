@@ -230,7 +230,7 @@ function renderResults(recommendations, query) {
   resultsGrid.innerHTML = '';
   resultsMeta.textContent = `${recommendations.length} meal${recommendations.length !== 1 ? 's' : ''} found for "${query}"`;
 
-  recommendations.forEach((meal, i) => {
+    recommendations.forEach((meal, i) => {
     const card = document.createElement('div');
     card.className = 'meal-card';
     card.style.animationDelay = `${i * 0.08}s`;
@@ -240,6 +240,10 @@ function renderResults(recommendations, query) {
 
     const tags = buildTags(meal);
     const scoreWidth = Math.round(meal.score * 100);
+    // Show only the first sentence of the description on the card
+    const descSnippet = meal.selection_description
+      ? meal.selection_description.split('.')[0] + '.'
+      : '';
 
     card.innerHTML = `
       <div class="meal-rank ${rankClass(i)}">${rankLabel(i)}</div>
@@ -267,6 +271,7 @@ function renderResults(recommendations, query) {
       <div class="meal-score-bar">
         <div class="meal-score-fill" data-width="${scoreWidth}"></div>
       </div>
+      ${descSnippet ? `<div class="meal-why-snippet">💡 ${escHtml(descSnippet)}</div>` : ''}
     `;
 
     card.addEventListener('click', () => openMealModal(meal, i));
@@ -296,6 +301,18 @@ function buildTags(meal) {
 // ── Meal Modal ────────────────────────────────────────────────────
 function openMealModal(meal, idx) {
   const tags = buildTags(meal);
+
+  // Build the "Why selected" block if description exists
+  const whyHtml = meal.selection_description ? `
+    <div style="background:linear-gradient(135deg,rgba(108,75,255,0.15),rgba(77,150,255,0.12));
+                border:1px solid rgba(108,75,255,0.3);border-radius:16px;padding:18px;margin-bottom:18px;">
+      <div style="font-size:0.75rem;color:#c77dff;text-transform:uppercase;letter-spacing:0.1em;
+                  font-weight:600;margin-bottom:10px;">💡 Why This Was Selected For You</div>
+      <div style="font-size:0.88rem;line-height:1.75;color:rgba(255,255,255,0.85);">
+        ${escHtml(meal.selection_description)}
+      </div>
+    </div>` : '';
+
   modalContent.innerHTML = `
     <div style="text-align:center; margin-bottom:20px;">
       <span style="font-size:4rem;">${foodEmoji(meal.name)}</span>
@@ -311,6 +328,8 @@ function openMealModal(meal, idx) {
       ${macroBig('🧈', meal.fat + 'g', 'Fat', '#ffd93d')}
       ${macroBig('🌾', meal.carbs + 'g', 'Carbs', '#6bcb77')}
     </div>
+
+    ${whyHtml}
 
     <div style="background:rgba(0,0,0,0.3);border-radius:16px;padding:16px;margin-bottom:16px;">
       <div style="font-size:0.78rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Ingredients</div>

@@ -28,6 +28,7 @@ import os
 from typing import Any, Dict, List
 
 from tools.logger import log_agent_step, log_tool_call, persist_trace
+from tools.description_tool import generate_selection_description
 from tools.report_tool import (
     build_markdown_report,
     save_markdown_report,
@@ -88,6 +89,17 @@ def recommend_meals(state: Dict[str, Any]) -> Dict[str, Any]:
     log_tool_call(state, "enrich_with_rank",
                   {"meal_count": len(top_meals)},
                   {"enriched_count": len(enriched)})
+
+    # ── Step 3b: Attach selection description to every meal ───────────────────
+    for meal in enriched:
+        try:
+            meal["selection_description"] = generate_selection_description(
+                meal, preferences
+            )
+        except Exception:
+            meal["selection_description"] = meal.get("reason", "")
+    log_tool_call(state, "generate_selection_description",
+                  {"meal_count": len(enriched)}, {"status": "ok"})
 
     # ── Step 4: Write to state ────────────────────────────────────────────────
     state["final_recommendations"] = enriched
