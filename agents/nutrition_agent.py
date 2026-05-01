@@ -93,7 +93,8 @@ def analyze_nutrition(state: Dict[str, Any]) -> Dict[str, Any]:
         },
     )
 
-    print(_build_console_report(preferences, all_evaluations))
+    # Disabled for web UI (output visible in browser)
+    # print(_build_console_report(preferences, all_evaluations))
     print(f"[Agent 3] Done. Accepted={len(accepted_meals)}, "
           f"Rejected={len(all_evaluations) - len(accepted_meals)}")
     return state
