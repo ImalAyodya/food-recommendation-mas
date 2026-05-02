@@ -125,6 +125,7 @@ def make_initial_state(user_input: str, run_id: str | None = None) -> FoodState:
         "final_recommendations": [],
         "report_path":           None,
         "json_path":             None,
+        "trace_path":            None,
         "tool_calls":            [],
         "errors":                [],
         "logs":                  [],
