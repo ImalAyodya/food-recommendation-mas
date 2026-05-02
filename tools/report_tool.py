@@ -31,9 +31,12 @@ from typing import Any, Dict, List, Optional
 # ─────────────────────────────────────────────────────────────
 # Output directory constants
 # ─────────────────────────────────────────────────────────────
-REPORTS_DIR: str = "outputs/reports"
-RESULTS_DIR: str = "outputs/results"
+# REPORTS_DIR: str = "outputs/reports"
+# RESULTS_DIR: str = "outputs/results"
+PROJECT_ROOT: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+REPORTS_DIR: str = os.path.join(PROJECT_ROOT, "outputs", "reports")
+RESULTS_DIR: str = os.path.join(PROJECT_ROOT, "outputs", "results")
 
 # ═════════════════════════════════════════════════════════════
 # Public API
@@ -125,7 +128,11 @@ def build_markdown_report(
     return "\n".join(lines)
 
 
-def save_markdown_report(report_md: str, output_dir: Optional[str] = None) -> str:
+def save_markdown_report(
+    report_md: str,
+    output_dir: Optional[str] = None,
+    filename_prefix: str = "report",
+) -> str:
     """
     Write a Markdown report string to a timestamped file on disk.
 
@@ -154,8 +161,11 @@ def save_markdown_report(report_md: str, output_dir: Optional[str] = None) -> st
         output_dir = REPORTS_DIR
 
     os.makedirs(output_dir, exist_ok=True)
-    timestamp: str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filepath: str = os.path.join(output_dir, f"report_{timestamp}.md")
+    # timestamp: str = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    # filepath: str = os.path.join(output_dir, f"report_{timestamp}.md")
+    safe_prefix = _safe_filename_prefix(filename_prefix)
+    timestamp: str = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    filepath: str = os.path.join(output_dir, f"{safe_prefix}_{timestamp}.md")
 
     try:
         with open(filepath, "w", encoding="utf-8") as f:
@@ -171,6 +181,7 @@ def save_json_results(
     meals: List[Dict[str, Any]],
     preferences: Dict[str, Any],
     output_dir: Optional[str] = None,
+    filename_prefix: str = "results",
 ) -> str:
     """
     Persist the final recommendations as a structured JSON file.
@@ -204,9 +215,12 @@ def save_json_results(
         output_dir = RESULTS_DIR
 
     os.makedirs(output_dir, exist_ok=True)
-    timestamp: str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filepath: str = os.path.join(output_dir, f"results_{timestamp}.json")
-
+        # timestamp: str = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        # filepath: str = os.path.join(output_dir, f"results_{timestamp}.json")
+    safe_prefix = _safe_filename_prefix(filename_prefix)
+    timestamp: str = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    filepath: str = os.path.join(output_dir, f"{safe_prefix}_{timestamp}.json")
+    
     payload: Dict[str, Any] = {
         "generated_at": datetime.now().isoformat(),
         "preferences": preferences,
@@ -435,3 +449,19 @@ def _safe_avg(values: List[Any]) -> float:
         except (TypeError, ValueError):
             continue
     return sum(valid) / len(valid) if valid else 0.0
+
+def _safe_filename_prefix(prefix: str) -> str:
+    """
+    Convert a filename prefix into a safe local filename component.
+
+    Args:
+        prefix: Raw filename prefix.
+
+    Returns:
+        Safe filename prefix containing only letters, numbers, underscore, or dash.
+    """
+    cleaned = "".join(
+        ch for ch in prefix.strip().replace(" ", "_")
+        if ch.isalnum() or ch in ("_", "-")
+    )
+    return cleaned or "recommendation"
