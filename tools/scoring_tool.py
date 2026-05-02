@@ -179,37 +179,46 @@ def enrich_with_rank(meals: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 def _extract_score(meal: Dict[str, Any]) -> float:
     """
-    Safely extract a numeric score from a meal dict.
-
-    Tries ``final_score`` first, then ``score``, then returns 0.0.
+    Safely extract a numeric score from a meal dictionary.
 
     Args:
-        meal: A meal dictionary from Agent 3.
+        meal: Meal dictionary from Agent 3.
 
     Returns:
-        Float score value; 0.0 if neither key exists or value is not numeric.
+        Float score. Invalid or missing scores return 0.0.
     """
+    if not isinstance(meal, dict):
+        return 0.0
+
     for key in ("final_score", "score"):
         value = meal.get(key)
         if value is not None:
             try:
-                return float(value)
+                score = float(value)
+                if score < 0:
+                    return 0.0
+                return score
             except (TypeError, ValueError):
                 continue
+
     return 0.0
 
 
 def _extract_cuisine(meal: Dict[str, Any]) -> str:
     """
-    Safely extract and normalise the cuisine string from a meal dict.
+    Safely extract and normalise cuisine from a meal dictionary.
 
     Args:
-        meal: A meal dictionary.
+        meal: Meal dictionary.
 
     Returns:
-        Lowercase stripped cuisine string, or ``"unknown"`` if absent.
+        Lowercase cuisine string or "unknown".
     """
-    raw = meal.get("cuisine", "")
-    if not raw:
+    if not isinstance(meal, dict):
         return "unknown"
+
+    raw = meal.get("cuisine", "")
+    if raw is None or str(raw).strip() == "":
+        return "unknown"
+
     return str(raw).strip().lower()

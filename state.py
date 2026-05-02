@@ -44,6 +44,7 @@ class FoodState(TypedDict):
     final_recommendations: List[Dict[str, Any]]  # Top-N enriched meals
     report_path: Optional[str]              # Path to saved Markdown report
     json_path: Optional[str]               # Path to saved JSON results
+    trace_path: Optional[str]
 
     # ── Observability ──────────────────────────────────────────
     tool_calls: List[Dict[str, Any]]        # Every tool invocation record

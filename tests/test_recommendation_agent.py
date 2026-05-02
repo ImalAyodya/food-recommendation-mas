@@ -516,3 +516,143 @@ class TestEdgeCasesAndSecurity:
         cuisine_counts = Counter(m["cuisine"] for m in result)
         for cuisine, count in cuisine_counts.items():
             assert count <= 2, f"Cuisine '{cuisine}' appears {count} times (max 2)"
+
+    def test_agent4_does_not_modify_original_scored_meals(self, sample_meals, tmp_path, monkeypatch):
+        """
+        Agent 4 must not change original nutrition values or scores from Agent 3.
+        """
+        monkeypatch.setattr("tools.report_tool.REPORTS_DIR", str(tmp_path / "reports"))
+        monkeypatch.setattr("tools.report_tool.RESULTS_DIR", str(tmp_path / "results"))
+
+        original_first_score = sample_meals[0]["final_score"]
+        original_first_calories = sample_meals[0]["calories"]
+
+        state = {
+            "preferences": {"diet": "vegan", "calorie_limit": 500, "exclude": []},
+            "candidate_meals": [],
+            "scored_meals": sample_meals,
+            "final_recommendations": [],
+            "tool_calls": [],
+            "logs": [],
+            "errors": [],
+        }
+
+        result = recommend_meals(state)
+
+        assert sample_meals[0]["final_score"] == original_first_score
+        assert sample_meals[0]["calories"] == original_first_calories
+        assert "rank" not in sample_meals[0]
+        assert "final_recommendations" in result
+
+
+    def test_agent4_json_contains_required_output_fields(self, sample_meals, tmp_path, monkeypatch):
+        """
+        JSON output must contain preferences, recommendation list, and recommendation count.
+        """
+        monkeypatch.setattr("tools.report_tool.REPORTS_DIR", str(tmp_path / "reports"))
+        monkeypatch.setattr("tools.report_tool.RESULTS_DIR", str(tmp_path / "results"))
+
+        state = {
+            "preferences": {"diet": "vegan", "calorie_limit": 500, "exclude": ["nuts"]},
+            "candidate_meals": [],
+            "scored_meals": sample_meals,
+            "final_recommendations": [],
+            "tool_calls": [],
+            "logs": [],
+            "errors": [],
+        }
+
+        result = recommend_meals(state)
+
+        assert "json_path" in result
+        assert os.path.exists(result["json_path"])
+
+        with open(result["json_path"], encoding="utf-8") as file:
+            data = json.load(file)
+
+        assert "preferences" in data
+        assert "recommendations" in data
+        assert "total_recommendations" in data
+        assert data["preferences"]["diet"] == "vegan"
+        assert isinstance(data["recommendations"], list)
+
+
+    def test_agent4_logs_tool_calls(self, sample_meals, tmp_path, monkeypatch):
+        """
+        Agent 4 must log its tool calls for observability.
+        """
+        monkeypatch.setattr("tools.report_tool.REPORTS_DIR", str(tmp_path / "reports"))
+        monkeypatch.setattr("tools.report_tool.RESULTS_DIR", str(tmp_path / "results"))
+
+        state = {
+            "preferences": {"diet": "vegan", "calorie_limit": 500, "exclude": []},
+            "candidate_meals": [],
+            "scored_meals": sample_meals,
+            "final_recommendations": [],
+            "tool_calls": [],
+            "logs": [],
+            "errors": [],
+        }
+
+        result = recommend_meals(state)
+
+        assert "tool_calls" in result
+        assert len(result["tool_calls"]) > 0
+
+        tool_names = [
+            call.get("tool") or call.get("tool_name") or call.get("name")
+            for call in result["tool_calls"]
+        ]
+
+        assert "rank_meals" in tool_names
+        assert "diversify_meals" in tool_names
+        assert "enrich_with_rank" in tool_names
+        assert "build_markdown_report" in tool_names
+
+
+    def test_agent4_handles_invalid_scored_meals_type(self, tmp_path, monkeypatch):
+        """
+        Agent 4 should fail safely when scored_meals is not a list.
+        """
+        monkeypatch.setattr("tools.report_tool.REPORTS_DIR", str(tmp_path / "reports"))
+        monkeypatch.setattr("tools.report_tool.RESULTS_DIR", str(tmp_path / "results"))
+
+        state = {
+            "preferences": {"diet": "vegan"},
+            "scored_meals": "invalid",
+            "final_recommendations": [],
+            "tool_calls": [],
+            "logs": [],
+            "errors": [],
+        }
+
+        result = recommend_meals(state)
+
+        assert len(result["errors"]) > 0
+        assert any("RecommendationReportAgent failed" in error for error in result["errors"])
+
+
+    def test_agent4_empty_input_still_creates_report_and_json(self, tmp_path, monkeypatch):
+        """
+        Empty scored_meals should not crash. It should still create no-result output files.
+        """
+        monkeypatch.setattr("tools.report_tool.REPORTS_DIR", str(tmp_path / "reports"))
+        monkeypatch.setattr("tools.report_tool.RESULTS_DIR", str(tmp_path / "results"))
+
+        state = {
+            "preferences": {"diet": "vegan", "calorie_limit": 500, "exclude": []},
+            "candidate_meals": [],
+            "scored_meals": [],
+            "final_recommendations": [],
+            "tool_calls": [],
+            "logs": [],
+            "errors": [],
+        }
+
+        result = recommend_meals(state)
+
+        assert result["final_recommendations"] == []
+        assert "report_path" in result
+        assert "json_path" in result
+        assert os.path.exists(result["report_path"])
+        assert os.path.exists(result["json_path"])
