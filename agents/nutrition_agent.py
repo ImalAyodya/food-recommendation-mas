@@ -15,7 +15,7 @@ Tools used
 Assignment compliance
     ✔  Distinct agent with a non-overlapping role
     ✔  Delegates to two custom tool functions (batch_evaluate, compute_health_flags)
-    ✔  Reads from / writes to global FoodState
+    ✔  Reads from / writes to global FoodState  
     ✔  Logs every agent step and every tool call
     ✔  Works entirely locally — no LLM, no API keys required
 """

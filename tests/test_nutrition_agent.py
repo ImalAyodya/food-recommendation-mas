@@ -243,18 +243,18 @@ class TestComputeHealthFlags:
 
 class TestAnalyzeNutrition:
 
+    def test_writes_scored_meals_to_state(self, base_state):
+        base_state["candidate_meals"] = [_meal()]
+        base_state["preferences"] = {"diet": "vegan", "calorie_limit": 500, "exclude": []}
+        result = analyze_nutrition(base_state)
+        assert "scored_meals" in result
+
     def test_writes_nutrition_evaluations_to_state(self, base_state):
         base_state["candidate_meals"] = [_meal()]
         base_state["preferences"] = {"diet": "vegan", "calorie_limit": 500, "exclude": []}
         result = analyze_nutrition(base_state)
         assert "nutrition_evaluations" in result
         assert len(result["nutrition_evaluations"]) == 1
-
-    def test_writes_scored_meals_to_state(self, base_state):
-        base_state["candidate_meals"] = [_meal()]
-        base_state["preferences"] = {"diet": "vegan", "calorie_limit": 500, "exclude": []}
-        result = analyze_nutrition(base_state)
-        assert "scored_meals" in result
 
     def test_rejected_meal_not_in_scored_meals(self, base_state):
         base_state["candidate_meals"] = [_meal(calories=9999)]

@@ -41,6 +41,17 @@ See [`docs/architecture.md`](docs/architecture.md) for the full Mermaid diagram.
 
 ---
 
+## Agent 3: Nutrition Analyzer
+
+- Purpose: evaluate candidate meals against user preferences and score nutrition quality.
+- Inputs: `state["preferences"]`, `state["candidate_meals"]`.
+- Outputs: `state["nutrition_evaluations"]`, `state["scored_meals"]`, plus log entries.
+- Tools: `batch_evaluate()` and `compute_health_flags()` in [tools/nutrition_tool.py](tools/nutrition_tool.py), plus logging in [tools/logger.py](tools/logger.py).
+- Implementation: [agents/nutrition_agent.py](agents/nutrition_agent.py).
+- Tests: [tests/test_nutrition_agent.py](tests/test_nutrition_agent.py).
+
+---
+
 ## Prerequisites
 
 | Requirement | Version |
